@@ -2,6 +2,7 @@ const net = require('net');
 const routes = [
   {
     method: `GET`,
+    statusCode: '200 OK',
     path: `/`,
     contentType: `text/html`,
     content: `<!DOCTYPE html>
@@ -28,6 +29,7 @@ const routes = [
   },
   {
     method: 'GET',
+    statusCode: '200 OK',
     path: `/index.html`,
     contentType: `text/html`,
     content: `<!DOCTYPE html>
@@ -54,6 +56,7 @@ const routes = [
   },
   {
     method: 'GET',
+    statusCode: '200 OK',
     path: `/css/styles.css`,
     contentType: `text/css`,
     content: `@import url(http://fonts.googleapis.com/css?family=Open+Sans|Roboto+Slab);
@@ -169,6 +172,7 @@ const routes = [
   },
   {
     method: 'GET',
+    statusCode: '200 OK',
     path: '/hydrogen.html',
     contentType: `text/html`,
     content: `<!DOCTYPE html>
@@ -189,6 +193,7 @@ const routes = [
   },
   {
     method: 'GET',
+    statusCode: '200 OK',
     path: '/helium.html',
     contentType: `text/html`,
     content: `<!DOCTYPE html>
@@ -209,6 +214,7 @@ const routes = [
   },
   {
     method: 'GET',
+    statusCode: '404 Not Found',
     path: '/404.html',
     contentType: `text/html`,
     content: `<!DOCTYPE html>
@@ -226,32 +232,38 @@ const routes = [
       </p>
     </body>
     </html>`
-  },
-  {
-
   }
 ]
-
+// page variable from routes
+// compare uri or path to paths in routes
+// if a page was found serve that page
+// if the page was not found serve the 404 page, not an ERR_NO_RESPONSE
 // this creates a server
 const server = net.createServer((socket) => {
   socket.setEncoding('utf8');
+  // same code is repeated per request, such as index and dependencies like css.
   socket.on('data', (data) => {
-    // do work here
+    // getting the path or uri of the http request
     let uri = data.slice(data.indexOf('/'));
     uri = uri.slice(0, uri.indexOf(' '));
-    // Do stuff with response
-    let response;
-    for (let i = 0; i < routes.length; i++){
-      if (routes[i].path === uri){
-        let date = new Date().toString();
-        response = `HTTP/1.1 200 OK\r
-        Date: ${date}\r
-        Content-Type: ${routes[i].contentType}; charset=utf-8\r
-        Content-Length: ${routes[i].content.length}\r\n
-
-        ${routes[i].content}`;
-        break;
+    // finding the route to the page specified
+    let page = routes.filter((route) => {
+      if (route.path === uri){
+        return route;
       }
+    }, undefined)[0];
+    // determining whether to serve page if found in routes, or 404 page if page variable
+    // is undefined.
+    let response;
+    if (page){
+      buildResponse(page);
+    } else {
+      buildResponse(routes[5]);
+    }
+    
+    function buildResponse(page){
+      let date = new Date().toString();
+      response = `HTTP/1.1 ${page.statusCode} \nDate: ${date}\nContent-Type: ${page.contentType}; charset=utf-8\nContent-Length: ${page.content.length}\n\n${page.content}`;
     }
     // send response back here
     socket.end(response);
@@ -260,7 +272,6 @@ const server = net.createServer((socket) => {
 // handle errors on the server
 .on('error', (err) => {
   console.log(err);
-  
 });
 
 // this starts the server
