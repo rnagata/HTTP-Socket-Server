@@ -234,15 +234,13 @@ const routes = [
     </html>`
   }
 ]
-// page variable from routes
-// compare uri or path to paths in routes
-// if a page was found serve that page
-// if the page was not found serve the 404 page, not an ERR_NO_RESPONSE
+
 // this creates a server
 const server = net.createServer((socket) => {
   socket.setEncoding('utf8');
   // same code is repeated per request, such as index and dependencies like css.
   socket.on('data', (data) => {
+    console.log(data);
     // getting the path or uri of the http request
     let uri = data.slice(data.indexOf('/'));
     uri = uri.slice(0, uri.indexOf(' '));
